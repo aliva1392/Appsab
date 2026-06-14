@@ -1,18 +1,18 @@
-package com.example
+package com.aistudio.sublimationerp
 
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.data.db.AppDatabase
-import com.example.data.db.entity.Customer
-import com.example.data.db.entity.Fabric
-import com.example.data.db.entity.Order
-import com.example.data.db.entity.OrderStatus
-import com.example.data.db.entity.Payment
-import com.example.data.db.entity.PaymentMethod
-import com.example.data.db.entity.PaymentType
-import com.example.data.repository.SublimationRepository
+import com.aistudio.sublimationerp.data.db.AppDatabase
+import com.aistudio.sublimationerp.data.db.entity.Customer
+import com.aistudio.sublimationerp.data.db.entity.Fabric
+import com.aistudio.sublimationerp.data.db.entity.Order
+import com.aistudio.sublimationerp.data.db.entity.OrderStatus
+import com.aistudio.sublimationerp.data.db.entity.Payment
+import com.aistudio.sublimationerp.data.db.entity.PaymentMethod
+import com.aistudio.sublimationerp.data.db.entity.PaymentType
+import com.aistudio.sublimationerp.data.repository.SublimationRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -55,7 +55,7 @@ class SublimationRepositoryTest {
         repository.insertOrder(Order(
             customerId = customerId,
             fabricId = fabricId,
-            type = com.example.data.db.entity.OrderType.FLAG,
+            type = com.aistudio.sublimationerp.data.db.entity.OrderType.FLAG,
             length = 5.0,
             width = 1.0,
             quantity = 2,
@@ -80,7 +80,7 @@ class SublimationRepositoryTest {
         repository.insertOrder(Order(
             customerId = customerId,
             fabricId = null,
-            type = com.example.data.db.entity.OrderType.FLAG,
+            type = com.aistudio.sublimationerp.data.db.entity.OrderType.FLAG,
             length = null,
             width = null,
             quantity = 1,
@@ -105,7 +105,7 @@ class SublimationRepositoryTest {
         val order = Order(
             customerId = customerId,
             fabricId = fabricId,
-            type = com.example.data.db.entity.OrderType.FLAG,
+            type = com.aistudio.sublimationerp.data.db.entity.OrderType.FLAG,
             length = 5.0,
             width = 1.0,
             quantity = 2,

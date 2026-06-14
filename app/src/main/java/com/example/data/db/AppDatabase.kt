@@ -1,16 +1,16 @@
-package com.example.data.db
+package com.aistudio.sublimationerp.data.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.example.data.db.dao.CustomerDao
-import com.example.data.db.dao.OrderDao
-import com.example.data.db.dao.FabricDao
-import com.example.data.db.entity.Customer
-import com.example.data.db.entity.Order
-import com.example.data.db.entity.Fabric
-import com.example.data.db.entity.Expense
-import com.example.data.db.entity.Payment
-import com.example.data.db.entity.Cheque
+import com.aistudio.sublimationerp.data.db.dao.CustomerDao
+import com.aistudio.sublimationerp.data.db.dao.OrderDao
+import com.aistudio.sublimationerp.data.db.dao.FabricDao
+import com.aistudio.sublimationerp.data.db.entity.Customer
+import com.aistudio.sublimationerp.data.db.entity.Order
+import com.aistudio.sublimationerp.data.db.entity.Fabric
+import com.aistudio.sublimationerp.data.db.entity.Expense
+import com.aistudio.sublimationerp.data.db.entity.Payment
+import com.aistudio.sublimationerp.data.db.entity.Cheque
 
 @Database(
     entities = [
@@ -28,7 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun customerDao(): CustomerDao
     abstract fun orderDao(): OrderDao
     abstract fun fabricDao(): FabricDao
-    abstract fun expenseDao(): com.example.data.db.dao.ExpenseDao
-    abstract fun paymentDao(): com.example.data.db.dao.PaymentDao
-    abstract fun chequeDao(): com.example.data.db.dao.ChequeDao
+    abstract fun expenseDao(): com.aistudio.sublimationerp.data.db.dao.ExpenseDao
+    abstract fun paymentDao(): com.aistudio.sublimationerp.data.db.dao.PaymentDao
+    abstract fun chequeDao(): com.aistudio.sublimationerp.data.db.dao.ChequeDao
 }

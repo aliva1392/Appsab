@@ -1,7 +1,7 @@
-package com.example.data.db.dao
+package com.aistudio.sublimationerp.data.db.dao
 
 import androidx.room.*
-import com.example.data.db.entity.Expense
+import com.aistudio.sublimationerp.data.db.entity.Expense
 import kotlinx.coroutines.flow.Flow
 
 @Dao

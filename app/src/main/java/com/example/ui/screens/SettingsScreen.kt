@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.aistudio.sublimationerp.ui.screens
 
 import android.content.Context
 import android.content.Intent
@@ -96,7 +96,7 @@ fun SettingsScreen() {
 private suspend fun backupDatabase(context: Context, targetUri: Uri) {
     withContext(Dispatchers.IO) {
         try {
-            val app = context.applicationContext as com.example.SublimationApp
+            val app = context.applicationContext as com.aistudio.sublimationerp.SublimationApp
             val dbFile = context.getDatabasePath("sublimation_db")
             
             // To be safe, checkpoint the DB and then close it before copying. Since TRUNCATE mode is used, DB should be safe.
@@ -126,7 +126,7 @@ private suspend fun backupDatabase(context: Context, targetUri: Uri) {
 private suspend fun restoreDatabase(context: Context, sourceUri: Uri) {
     withContext(Dispatchers.IO) {
         try {
-            val app = context.applicationContext as com.example.SublimationApp
+            val app = context.applicationContext as com.aistudio.sublimationerp.SublimationApp
             val dbFile = context.getDatabasePath("sublimation_db")
             
             // Critical! Close database before overwrite.

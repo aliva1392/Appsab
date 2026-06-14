@@ -1,16 +1,13 @@
-package com.example.data.api
+package com.aistudio.sublimationerp.data.api
 
-import com.example.BuildConfig
+import com.aistudio.sublimationerp.BuildConfig
 
 class GeminiApiClient {
-    init {
+    fun makeApiCall() {
         val key = BuildConfig.GEMINI_API_KEY
         if (key == "MY_GEMINI_API_KEY" || key.isBlank()) {
             throw IllegalStateException("Gemini API key not configured. Set GEMINI_API_KEY in your .env file.")
         }
-    }
-
-    fun makeApiCall() {
         // Dummy function
     }
 }

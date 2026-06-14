@@ -1,4 +1,4 @@
-package com.example.ui.navigation
+package com.aistudio.sublimationerp.ui.navigation
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,8 +19,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.ui.screens.*
-import com.example.ui.viewmodels.SublimationViewModel
+import com.aistudio.sublimationerp.ui.screens.*
+import com.aistudio.sublimationerp.ui.viewmodels.SublimationViewModel
 
 @Composable
 fun MainScreen(viewModel: SublimationViewModel) {
@@ -83,10 +83,14 @@ fun MainScreen(viewModel: SublimationViewModel) {
                     AddCustomerScreen(viewModel, onNavigateBack = { navController.popBackStack() })
                 }
                 composable(Route.ORDERS.name) {
-                    OrdersScreen(viewModel, onNavigateToAddOrder = { navController.navigate(Route.ADD_ORDER.name) })
+                    OrdersScreen(viewModel, onNavigateToAddOrder = { navController.navigate(Route.ADD_ORDER.name) }, onNavigateToEditOrder = { id -> navController.navigate("${Route.EDIT_ORDER.name}/$id") })
                 }
                 composable(Route.ADD_ORDER.name) {
-                    AddOrderScreen(viewModel, onNavigateBack = { navController.popBackStack() })
+                    AddOrderScreen(viewModel, null, onNavigateBack = { navController.popBackStack() })
+                }
+                composable(Route.EDIT_ORDER.name + "/{orderId}") { backStackEntry ->
+                    val orderId = backStackEntry.arguments?.getString("orderId")?.toLongOrNull()
+                    AddOrderScreen(viewModel, orderId, onNavigateBack = { navController.popBackStack() })
                 }
                 composable(Route.FABRICS.name) {
                     FabricsScreen(viewModel, onNavigateToAddFabric = { navController.navigate(Route.ADD_FABRIC.name) })

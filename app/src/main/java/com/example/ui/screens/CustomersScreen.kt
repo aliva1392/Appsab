@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.aistudio.sublimationerp.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,8 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.data.db.entity.Customer
-import com.example.ui.viewmodels.SublimationViewModel
+import com.aistudio.sublimationerp.data.db.entity.Customer
+import com.aistudio.sublimationerp.ui.viewmodels.SublimationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

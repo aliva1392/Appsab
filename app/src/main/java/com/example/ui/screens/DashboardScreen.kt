@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.aistudio.sublimationerp.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.ui.viewmodels.SublimationViewModel
+import com.aistudio.sublimationerp.ui.viewmodels.SublimationViewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.List
@@ -20,7 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.clickable
-import com.example.ui.navigation.Route
+import com.aistudio.sublimationerp.ui.navigation.Route
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

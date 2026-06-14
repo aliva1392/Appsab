@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.aistudio.sublimationerp.ui.screens
 
 import android.content.Context
 import android.net.Uri
@@ -17,11 +17,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.ui.viewmodels.SublimationViewModel
+import com.aistudio.sublimationerp.ui.viewmodels.SublimationViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.example.data.db.entity.Order
+import com.aistudio.sublimationerp.data.db.entity.Order
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -145,7 +145,7 @@ fun ReportsScreen(viewModel: SublimationViewModel) {
                     Text("وضعیت انبار و مشتریان:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
                     
-                    Text("مجموع بدهی مشتریان: ${String.format("%,.0f", totalCustomerDebt ?: 0.0)} تومان")
+                    Text("مجموع بدهی مشتریان (مستقل از بازه تاریخی): ${String.format("%,.0f", totalCustomerDebt ?: 0.0)} تومان")
                     Text("تعداد پارچه‌های کم‌موجود: $lowStockFabricsCount", color = if(lowStockFabricsCount > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onTertiaryContainer)
                 }
             }
@@ -232,23 +232,7 @@ private suspend fun exportOrdersToXlsx(context: Context, uri: Uri, orders: List<
 private suspend fun exportSummaryToPdf(context: Context, uri: Uri, gross: Double, net: Double, exp: Double, todaySales: Double) {
     withContext(Dispatchers.IO) {
         try {
-            val file = File(context.cacheDir, "temp_font.ttf")
-            if (!file.exists()) {
-                var isSet = false
-                try {
-                   context.assets.open("fonts/vazirmatn.ttf").use { input ->
-                        FileOutputStream(file).use { output ->
-                            input.copyTo(output)
-                        }
-                   }
-                   isSet = true
-                } catch(e: Exception) {}
-                
-                // Fallback to system fonts if user didn't drop the font yet, although text might not render nicely
-                if (!isSet) {
-                   file.createNewFile() // Creates empty file to fail gracefully
-                }
-            }
+            val fontBytes = context.assets.open("fonts/vazirmatn.ttf").readBytes()
 
             context.contentResolver.openOutputStream(uri)?.use { outputStream ->
                 val writer = PdfWriter(outputStream)
@@ -258,7 +242,7 @@ private suspend fun exportSummaryToPdf(context: Context, uri: Uri, gross: Double
                 
                 var font: PdfFont? = null
                 try {
-                    font = PdfFontFactory.createFont(file.absolutePath, PdfEncodings.IDENTITY_H, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED)
+                    font = PdfFontFactory.createFont(fontBytes, PdfEncodings.IDENTITY_H, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED)
                 } catch(e: Exception) {
                     font = PdfFontFactory.createFont()
                 }

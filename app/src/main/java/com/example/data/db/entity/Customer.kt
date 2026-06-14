@@ -1,4 +1,4 @@
-package com.example.data.db.entity
+package com.aistudio.sublimationerp.data.db.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.aistudio.sublimationerp.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,9 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.data.db.entity.Payment
-import com.example.data.db.entity.PaymentType
-import com.example.ui.viewmodels.SublimationViewModel
+import com.aistudio.sublimationerp.data.db.entity.Payment
+import com.aistudio.sublimationerp.data.db.entity.PaymentType
+import com.aistudio.sublimationerp.ui.viewmodels.SublimationViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

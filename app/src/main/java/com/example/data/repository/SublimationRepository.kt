@@ -1,18 +1,18 @@
-package com.example.data.repository
+package com.aistudio.sublimationerp.data.repository
 
-import com.example.data.db.dao.CustomerDao
-import com.example.data.db.dao.OrderDao
-import com.example.data.db.dao.FabricDao
-import com.example.data.db.dao.ExpenseDao
-import com.example.data.db.dao.PaymentDao
-import com.example.data.db.dao.ChequeDao
-import com.example.data.db.entity.Customer
-import com.example.data.db.entity.Order
-import com.example.data.db.entity.Fabric
-import com.example.data.db.entity.Expense
-import com.example.data.db.entity.Payment
-import com.example.data.db.entity.PaymentType
-import com.example.data.db.entity.Cheque
+import com.aistudio.sublimationerp.data.db.dao.CustomerDao
+import com.aistudio.sublimationerp.data.db.dao.OrderDao
+import com.aistudio.sublimationerp.data.db.dao.FabricDao
+import com.aistudio.sublimationerp.data.db.dao.ExpenseDao
+import com.aistudio.sublimationerp.data.db.dao.PaymentDao
+import com.aistudio.sublimationerp.data.db.dao.ChequeDao
+import com.aistudio.sublimationerp.data.db.entity.Customer
+import com.aistudio.sublimationerp.data.db.entity.Order
+import com.aistudio.sublimationerp.data.db.entity.Fabric
+import com.aistudio.sublimationerp.data.db.entity.Expense
+import com.aistudio.sublimationerp.data.db.entity.Payment
+import com.aistudio.sublimationerp.data.db.entity.PaymentType
+import com.aistudio.sublimationerp.data.db.entity.Cheque
 import kotlinx.coroutines.flow.Flow
 
 class SublimationRepository(
@@ -69,6 +69,14 @@ class SublimationRepository(
              fabricDao.updateFabric(fabric.copy(stock = newStock))
          }
     }
+    
+    suspend fun restoreFabricStock(fabricId: Long, amount: Double) {
+         val fabric = fabricDao.getFabricById(fabricId)
+         if (fabric != null) {
+             val newStock = fabric.stock + amount
+             fabricDao.updateFabric(fabric.copy(stock = newStock))
+         }
+    }
 
     suspend fun updateOrder(order: Order) {
         val oldOrder = orderDao.getOrderById(order.id)
@@ -82,7 +90,7 @@ class SublimationRepository(
             }
             if (oldOrder.fabricId != null && oldOrder.length != null) {
                 val qty = (if(oldOrder.quantity > 0) oldOrder.quantity else 1)
-                deductFabricStock(oldOrder.fabricId, -(oldOrder.length * qty)) // reverse deduction
+                restoreFabricStock(oldOrder.fabricId, oldOrder.length * qty) // reverse deduction
             }
         }
         
@@ -110,7 +118,7 @@ class SublimationRepository(
         }
         if (order.fabricId != null && order.length != null) {
             val qty = (if(order.quantity > 0) order.quantity else 1)
-            deductFabricStock(order.fabricId, -(order.length * qty))
+            restoreFabricStock(order.fabricId, order.length * qty)
         }
         orderDao.deleteOrder(order)
     }

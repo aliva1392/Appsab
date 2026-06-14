@@ -1,9 +1,9 @@
-package com.example
+package com.aistudio.sublimationerp
 
 import android.app.Application
 import androidx.room.Room
-import com.example.data.db.AppDatabase
-import com.example.data.repository.SublimationRepository
+import com.aistudio.sublimationerp.data.db.AppDatabase
+import com.aistudio.sublimationerp.data.repository.SublimationRepository
 
 class SublimationApp : Application() {
     lateinit var database: AppDatabase

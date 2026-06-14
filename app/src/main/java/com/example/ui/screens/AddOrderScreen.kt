@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.aistudio.sublimationerp.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,18 +13,21 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import com.example.data.db.entity.Customer
-import com.example.data.db.entity.Fabric
-import com.example.data.db.entity.Order
-import com.example.data.db.entity.OrderStatus
-import com.example.data.db.entity.OrderType
-import com.example.ui.viewmodels.SublimationViewModel
+import androidx.compose.material.icons.filled.Delete
+import com.aistudio.sublimationerp.data.db.entity.Customer
+import com.aistudio.sublimationerp.data.db.entity.Fabric
+import com.aistudio.sublimationerp.data.db.entity.Order
+import com.aistudio.sublimationerp.data.db.entity.OrderStatus
+import com.aistudio.sublimationerp.data.db.entity.OrderType
+import com.aistudio.sublimationerp.ui.viewmodels.SublimationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddOrderScreen(viewModel: SublimationViewModel, onNavigateBack: () -> Unit) {
+fun AddOrderScreen(viewModel: SublimationViewModel, orderId: Long?, onNavigateBack: () -> Unit) {
     val customers by viewModel.customers.collectAsStateWithLifecycle()
     val fabrics by viewModel.fabrics.collectAsStateWithLifecycle()
+    val orders by viewModel.orders.collectAsStateWithLifecycle()
+    val editingOrder = remember(orderId, orders) { orders.find { it.id == orderId } }
 
     var selectedCustomer by remember { mutableStateOf<Customer?>(null) }
     var selectedOrderType by remember { mutableStateOf(OrderType.BANNER) }
@@ -45,8 +48,27 @@ fun AddOrderScreen(viewModel: SublimationViewModel, onNavigateBack: () -> Unit) 
     var typeDropdownExpanded by remember { mutableStateOf(false) }
     var fabricDropdownExpanded by remember { mutableStateOf(false) }
 
+    var initialized by remember { mutableStateOf(false) }
+
+    LaunchedEffect(editingOrder, customers, fabrics) {
+        if (!initialized && editingOrder != null && customers.isNotEmpty()) {
+            selectedCustomer = customers.find { it.id == editingOrder.customerId }
+            selectedOrderType = editingOrder.type
+            selectedFabric = fabrics.find { it.id == editingOrder.fabricId }
+            width = editingOrder.width?.toString() ?: ""
+            length = editingOrder.length?.toString() ?: ""
+            quantity = editingOrder.quantity.toString()
+            unitPrice = editingOrder.unitPrice.toLong().toString()
+            totalAmount = editingOrder.totalAmount.toLong().toString()
+            paidAmount = editingOrder.paidAmount.toLong().toString()
+            notes = editingOrder.notes
+            initialized = true
+        }
+    }
+
     // Auto calculate
     LaunchedEffect(width, length, quantity, unitPrice) {
+        if (initialized && editingOrder != null) return@LaunchedEffect
         val w = width.toDoubleOrNull() ?: 1.0
         val l = length.toDoubleOrNull() ?: 1.0
         val q = quantity.toIntOrNull() ?: 1
@@ -69,10 +91,20 @@ fun AddOrderScreen(viewModel: SublimationViewModel, onNavigateBack: () -> Unit) 
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("ثبت سفارش جدید") },
+                title = { Text(if (orderId == null) "ثبت سفارش جدید" else "ویرایش سفارش") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "بازگشت")
+                    }
+                },
+                actions = {
+                    if (orderId != null) {
+                        IconButton(onClick = {
+                            editingOrder?.let { viewModel.deleteOrder(it) }
+                            onNavigateBack()
+                        }) {
+                            Icon(Icons.Default.Delete, contentDescription = "حذف مجدد")
+                        }
                     }
                 }
             )
@@ -284,16 +316,21 @@ fun AddOrderScreen(viewModel: SublimationViewModel, onNavigateBack: () -> Unit) 
                             totalAmount = finalTotal,
                             paidAmount = finalPaid,
                             remainingAmount = remaining,
-                            status = OrderStatus.REGISTERED,
-                            notes = notes
+                            status = editingOrder?.status ?: OrderStatus.REGISTERED,
+                            notes = notes,
+                            date = editingOrder?.date ?: System.currentTimeMillis()
                         )
-                        viewModel.addOrder(newOrder)
+                        if (orderId == null) {
+                            viewModel.addOrder(newOrder)
+                        } else {
+                            viewModel.updateOrder(newOrder.copy(id = orderId))
+                        }
                         onNavigateBack()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("ثبت سفارش")
+                Text(if (orderId == null) "ثبت سفارش" else "ویرایش سفارش")
             }
         }
     }

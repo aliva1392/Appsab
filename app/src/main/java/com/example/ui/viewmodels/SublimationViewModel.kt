@@ -1,15 +1,15 @@
-package com.example.ui.viewmodels
+package com.aistudio.sublimationerp.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.data.db.entity.Customer
-import com.example.data.db.entity.Fabric
-import com.example.data.db.entity.Order
-import com.example.data.db.entity.Expense
-import com.example.data.db.entity.Payment
-import com.example.data.db.entity.Cheque
-import com.example.data.repository.SublimationRepository
+import com.aistudio.sublimationerp.data.db.entity.Customer
+import com.aistudio.sublimationerp.data.db.entity.Fabric
+import com.aistudio.sublimationerp.data.db.entity.Order
+import com.aistudio.sublimationerp.data.db.entity.Expense
+import com.aistudio.sublimationerp.data.db.entity.Payment
+import com.aistudio.sublimationerp.data.db.entity.Cheque
+import com.aistudio.sublimationerp.data.repository.SublimationRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn

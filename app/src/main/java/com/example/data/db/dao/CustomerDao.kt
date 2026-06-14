@@ -1,4 +1,4 @@
-package com.example.data.db.dao
+package com.aistudio.sublimationerp.data.db.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -6,7 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.example.data.db.entity.Customer
+import com.aistudio.sublimationerp.data.db.entity.Customer
 import kotlinx.coroutines.flow.Flow
 
 @Dao

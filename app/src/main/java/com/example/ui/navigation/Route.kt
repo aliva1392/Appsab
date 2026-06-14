@@ -1,4 +1,4 @@
-package com.example.ui.navigation
+package com.aistudio.sublimationerp.ui.navigation
 
 enum class Route {
     DASHBOARD,
@@ -6,6 +6,7 @@ enum class Route {
     ADD_CUSTOMER,
     ORDERS,
     ADD_ORDER,
+    EDIT_ORDER,
     FABRICS,
     ADD_FABRIC,
     EXPENSES,

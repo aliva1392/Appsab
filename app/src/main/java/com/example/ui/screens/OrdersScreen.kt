@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.aistudio.sublimationerp.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,15 +13,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.data.db.entity.Order
-import com.example.ui.viewmodels.SublimationViewModel
+import com.aistudio.sublimationerp.data.db.entity.Order
+import com.aistudio.sublimationerp.ui.viewmodels.SublimationViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OrdersScreen(viewModel: SublimationViewModel, onNavigateToAddOrder: () -> Unit) {
+fun OrdersScreen(viewModel: SublimationViewModel, onNavigateToAddOrder: () -> Unit, onNavigateToEditOrder: (Long) -> Unit) {
     val orders by viewModel.orders.collectAsStateWithLifecycle()
     val customers by viewModel.customers.collectAsStateWithLifecycle()
 
@@ -50,7 +50,7 @@ fun OrdersScreen(viewModel: SublimationViewModel, onNavigateToAddOrder: () -> Un
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(orders) { order ->
                         val customer = customers.find { it.id == order.customerId }
-                        OrderItem(order = order, customerName = customer?.name ?: "نامشخص", onClick = { /* TODO */ })
+                        OrderItem(order = order, customerName = customer?.name ?: "نامشخص", onClick = { onNavigateToEditOrder(order.id) })
                     }
                 }
             }
@@ -77,8 +77,8 @@ fun OrderItem(order: Order, customerName: String, onClick: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "مشتری: $customerName", style = MaterialTheme.typography.bodyMedium)
             
-            val dateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault())
-            Text(text = "تاریخ: ${dateFormat.format(Date(order.date))}", style = MaterialTheme.typography.bodySmall)
+            val jalaliStr = "${getShamsiDate(order.date)} ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(order.date))}"
+            Text(text = "تاریخ: $jalaliStr", style = MaterialTheme.typography.bodySmall)
             
             Text(text = "مبلغ کل: ${String.format("%,.0f", order.totalAmount)} تومان", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
         }

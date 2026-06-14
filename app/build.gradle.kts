@@ -114,7 +114,7 @@ dependencies {
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)
   implementation("org.apache.poi:poi-ooxml:5.2.5")
-  implementation("com.itextpdf:itextg:5.5.10")
+  implementation("com.itextpdf:itext7-core:7.2.5")
   // implementation(libs.coil.compose)
   implementation(libs.converter.moshi)
   // implementation(libs.firebase.ai)

@@ -30,15 +30,17 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.File
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import com.itextpdf.text.Document
-import com.itextpdf.text.Paragraph
-import com.itextpdf.text.pdf.PdfWriter
-import com.itextpdf.text.pdf.BaseFont
-import com.itextpdf.text.Font
-import com.itextpdf.text.pdf.PdfPTable
-import com.itextpdf.text.pdf.PdfPCell
-import com.itextpdf.text.pdf.ColumnText
-import com.itextpdf.text.Element
+import com.itextpdf.kernel.pdf.PdfDocument
+import com.itextpdf.kernel.pdf.PdfWriter
+import com.itextpdf.layout.Document
+import com.itextpdf.layout.element.Paragraph
+import com.itextpdf.layout.element.Table
+import com.itextpdf.layout.element.Cell
+import com.itextpdf.kernel.font.PdfFontFactory
+import com.itextpdf.kernel.font.PdfFont
+import com.itextpdf.layout.properties.TextAlignment
+import com.itextpdf.layout.properties.BaseDirection
+import com.itextpdf.io.font.PdfEncodings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,9 +114,8 @@ fun ReportsScreen(viewModel: SublimationViewModel) {
                 Text("انتخاب بازه تاریخی گزارش")
             }
             
-            val df = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
             Text(
-                text = "بازه انتخابی: ${df.format(Date(datePickerState.selectedStartDateMillis ?: 0L))} تا ${df.format(Date(datePickerState.selectedEndDateMillis ?: System.currentTimeMillis()))}",
+                text = "بازه انتخابی: ${getShamsiDate(datePickerState.selectedStartDateMillis ?: 0L)} تا ${getShamsiDate(datePickerState.selectedEndDateMillis ?: System.currentTimeMillis())}",
                 style = MaterialTheme.typography.bodyMedium
             )
 
@@ -195,7 +196,6 @@ private suspend fun exportOrdersToXlsx(context: Context, uri: Uri, orders: List<
                 }
 
                 // Data Rows
-                val df = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault())
                 orders.forEachIndexed { rowIndex, order ->
                     val row = sheet.createRow(rowIndex + 1)
                     row.createCell(0).setCellValue(order.id.toString())
@@ -203,7 +203,10 @@ private suspend fun exportOrdersToXlsx(context: Context, uri: Uri, orders: List<
                     row.createCell(2).setCellValue(order.totalAmount)
                     row.createCell(3).setCellValue(order.paidAmount)
                     row.createCell(4).setCellValue(order.remainingAmount)
-                    row.createCell(5).setCellValue(df.format(Date(order.date)))
+                    
+                    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+                    val jalaliStr = "${getShamsiDate(order.date)} ${timeFormat.format(Date(order.date))}"
+                    row.createCell(5).setCellValue(jalaliStr)
                 }
 
                 // Auto-size columns
@@ -247,43 +250,44 @@ private suspend fun exportSummaryToPdf(context: Context, uri: Uri, gross: Double
                 }
             }
 
-            val document = Document()
             context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                PdfWriter.getInstance(document, outputStream)
-                document.open()
+                val writer = PdfWriter(outputStream)
+                val pdfDocument = PdfDocument(writer)
+                val document = Document(pdfDocument)
+                document.setBaseDirection(BaseDirection.RIGHT_TO_LEFT)
                 
-                var baseFont: BaseFont
+                var font: PdfFont? = null
                 try {
-                    baseFont = BaseFont.createFont(file.absolutePath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED)
+                    font = PdfFontFactory.createFont(file.absolutePath, PdfEncodings.IDENTITY_H, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED)
                 } catch(e: Exception) {
-                    baseFont = BaseFont.createFont()
+                    font = PdfFontFactory.createFont()
                 }
-                val font = Font(baseFont, 14f, Font.NORMAL)
-                val fontTitle = Font(baseFont, 18f, Font.BOLD)
 
-                val table = PdfPTable(1)
-                table.runDirection = PdfWriter.RUN_DIRECTION_RTL
-                table.widthPercentage = 100f
+                document.setFont(font)
+
+                val table = Table(1)
+                table.useAllAvailableWidth()
+                table.setTextAlignment(TextAlignment.RIGHT)
                 
-                var cell = PdfPCell(Paragraph("گزارش خلاصه وضعیت سیستم سابلیمیشن", fontTitle))
-                cell.border = com.itextpdf.text.Rectangle.NO_BORDER
-                cell.horizontalAlignment = Element.ALIGN_CENTER
+                var cell = Cell().add(Paragraph("گزارش خلاصه وضعیت سیستم سابلیمیشن").setBold().setFontSize(18f))
+                cell.setBorder(com.itextpdf.layout.borders.Border.NO_BORDER)
+                cell.setTextAlignment(TextAlignment.CENTER)
                 table.addCell(cell)
                 
-                cell = PdfPCell(Paragraph("فروش امروز: ${String.format("%,.0f", todaySales)} تومان", font))
-                cell.border = com.itextpdf.text.Rectangle.NO_BORDER
+                cell = Cell().add(Paragraph("فروش امروز: ${String.format("%,.0f", todaySales)} تومان").setFontSize(14f))
+                cell.setBorder(com.itextpdf.layout.borders.Border.NO_BORDER)
                 table.addCell(cell)
                 
-                cell = PdfPCell(Paragraph("کل سود ناخالص: ${String.format("%,.0f", gross)} تومان", font))
-                cell.border = com.itextpdf.text.Rectangle.NO_BORDER
+                cell = Cell().add(Paragraph("کل سود ناخالص: ${String.format("%,.0f", gross)} تومان").setFontSize(14f))
+                cell.setBorder(com.itextpdf.layout.borders.Border.NO_BORDER)
                 table.addCell(cell)
                 
-                cell = PdfPCell(Paragraph("کل هزینه‌ها: ${String.format("%,.0f", exp)} تومان", font))
-                cell.border = com.itextpdf.text.Rectangle.NO_BORDER
+                cell = Cell().add(Paragraph("کل هزینه‌ها: ${String.format("%,.0f", exp)} تومان").setFontSize(14f))
+                cell.setBorder(com.itextpdf.layout.borders.Border.NO_BORDER)
                 table.addCell(cell)
                 
-                cell = PdfPCell(Paragraph("سود خالص: ${String.format("%,.0f", net)} تومان", font))
-                cell.border = com.itextpdf.text.Rectangle.NO_BORDER
+                cell = Cell().add(Paragraph("سود خالص: ${String.format("%,.0f", net)} تومان").setFontSize(14f))
+                cell.setBorder(com.itextpdf.layout.borders.Border.NO_BORDER)
                 table.addCell(cell)
 
                 document.add(table)

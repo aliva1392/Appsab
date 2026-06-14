@@ -38,7 +38,7 @@ class SublimationViewModel(private val repository: SublimationRepository) : View
 
     val orders: StateFlow<List<Order>> = combine(_reportStartDate, _reportEndDate) { start, end -> Pair(start, end) }
         .flatMapLatest { (start, end) ->
-            if (start == 0L) repository.allOrders else repository.getOrdersBetween(start, end)
+            if (start == 0L) repository.allOrders else repository.getOrdersByDateRange(start, end)
         }.stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptyList())
 
     val fabrics: StateFlow<List<Fabric>> = repository.allFabrics.stateIn(
@@ -49,7 +49,7 @@ class SublimationViewModel(private val repository: SublimationRepository) : View
     
     val expenses: StateFlow<List<Expense>> = combine(_reportStartDate, _reportEndDate) { start, end -> Pair(start, end) }
         .flatMapLatest { (start, end) ->
-            if (start == 0L) repository.allExpenses else repository.getExpensesBetween(start, end)
+            if (start == 0L) repository.allExpenses else repository.getExpensesByDateRange(start, end)
         }.stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptyList())
     
     val payments: StateFlow<List<Payment>> = repository.allPayments.stateIn(

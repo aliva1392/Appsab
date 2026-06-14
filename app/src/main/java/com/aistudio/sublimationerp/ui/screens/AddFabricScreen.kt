@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -37,6 +38,16 @@ fun AddFabricScreen(viewModel: SublimationViewModel, fabricId: Long? = null, onN
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "بازگشت")
+                    }
+                },
+                actions = {
+                    if (fabric != null) {
+                        IconButton(onClick = {
+                            viewModel.deleteFabric(fabric)
+                            onNavigateBack()
+                        }) {
+                            Icon(Icons.Default.Delete, contentDescription = "حذف")
+                        }
                     }
                 }
             )

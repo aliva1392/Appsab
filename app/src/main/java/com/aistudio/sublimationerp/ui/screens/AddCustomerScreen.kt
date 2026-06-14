@@ -3,6 +3,7 @@ package com.aistudio.sublimationerp.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -35,6 +36,16 @@ fun AddCustomerScreen(viewModel: SublimationViewModel, customerId: Long? = null,
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "بازگشت")
+                    }
+                },
+                actions = {
+                    if (customer != null) {
+                        IconButton(onClick = {
+                            viewModel.deleteCustomer(customer)
+                            onNavigateBack()
+                        }) {
+                            Icon(Icons.Default.Delete, contentDescription = "حذف")
+                        }
                     }
                 }
             )

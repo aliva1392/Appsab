@@ -125,6 +125,7 @@ class SublimationRepository(
     
     suspend fun insertFabric(fabric: Fabric): Long = fabricDao.insertFabric(fabric)
     suspend fun updateFabric(fabric: Fabric) = fabricDao.updateFabric(fabric)
+    suspend fun deleteFabric(fabric: Fabric) = fabricDao.deleteFabric(fabric)
     
     // Expenses
     suspend fun insertExpense(expense: Expense) = expenseDao.insertExpense(expense)

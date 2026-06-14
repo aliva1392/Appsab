@@ -29,7 +29,7 @@ import java.util.Calendar
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.File
-import org.dhatim.fastexcel.Workbook
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import com.itextpdf.text.Document
 import com.itextpdf.text.Paragraph
 import com.itextpdf.text.pdf.PdfWriter
@@ -182,32 +182,46 @@ private suspend fun exportOrdersToXlsx(context: Context, uri: Uri, orders: List<
     withContext(Dispatchers.IO) {
         try {
             context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                val wb = Workbook(outputStream, "SublimationApp", "1.0")
-                val ws = wb.newWorksheet("سفارشات")
-                ws.value(0, 0, "شناسه سفارش")
-                ws.value(0, 1, "شناسه مشتری")
-                ws.value(0, 2, "مبلغ کل")
-                ws.value(0, 3, "مبلغ پرداختی")
-                ws.value(0, 4, "مانده بدهی")
-                ws.value(0, 5, "تاریخ")
+                val workbook = XSSFWorkbook()
+                val sheet = workbook.createSheet("سفارشات")
+                sheet.isRightToLeft = true
 
-                val df = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault())
-                for ((index, order) in orders.withIndex()) {
-                    val row = index + 1
-                    ws.value(row, 0, order.id.toString())
-                    ws.value(row, 1, order.customerId.toString())
-                    ws.value(row, 2, order.totalAmount)
-                    ws.value(row, 3, order.paidAmount)
-                    ws.value(row, 4, order.remainingAmount)
-                    ws.value(row, 5, df.format(Date(order.date)))
+                // Header Row
+                val headerRow = sheet.createRow(0)
+                val headers = listOf("شناسه سفارش", "شناسه مشتری", "مبلغ کل", "مبلغ پرداختی", "مانده بدهی", "تاریخ")
+                headers.forEachIndexed { colIndex, title ->
+                    val cell = headerRow.createCell(colIndex)
+                    cell.setCellValue(title)
                 }
-                wb.finish()
+
+                // Data Rows
+                val df = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault())
+                orders.forEachIndexed { rowIndex, order ->
+                    val row = sheet.createRow(rowIndex + 1)
+                    row.createCell(0).setCellValue(order.id.toString())
+                    row.createCell(1).setCellValue(order.customerId.toString())
+                    row.createCell(2).setCellValue(order.totalAmount)
+                    row.createCell(3).setCellValue(order.paidAmount)
+                    row.createCell(4).setCellValue(order.remainingAmount)
+                    row.createCell(5).setCellValue(df.format(Date(order.date)))
+                }
+
+                // Auto-size columns
+                for (i in headers.indices) {
+                    sheet.autoSizeColumn(i)
+                }
+
+                workbook.write(outputStream)
+                workbook.close()
             }
             withContext(Dispatchers.Main) {
                 Toast.makeText(context, "فایل اکسل با موفقیت ذخیره شد", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, "خطا در خروجی اکسل.", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }

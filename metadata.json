@@ -1,6 +1,6 @@
 {
-  "name": "Subline ERP",
-  "description": "Comprehensive ERP application for sublimation workshop management, featuring orders, inventory, customers, and accounting.",
+  "name": "SubliMaster",
+  "description": "سیستم ERP جامع برای مدیریت کارگاههای چاپ سابلیمیشن — سفارشات، موجودی، حسابداری و چک",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

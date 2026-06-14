@@ -1,0 +1,6 @@
+{
+  "name": "Subline ERP",
+  "description": "Comprehensive ERP application for sublimation workshop management, featuring orders, inventory, customers, and accounting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

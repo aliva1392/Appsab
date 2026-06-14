@@ -9,8 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -23,15 +22,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.data.db.entity.Order
-import java.io.OutputStreamWriter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import android.graphics.pdf.PdfDocument
-import android.graphics.Paint
-import android.graphics.Canvas
-import android.graphics.Color
+import java.util.Calendar
 import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.File
+import org.dhatim.fastexcel.Workbook
+import com.itextpdf.text.Document
+import com.itextpdf.text.Paragraph
+import com.itextpdf.text.pdf.PdfWriter
+import com.itextpdf.text.pdf.BaseFont
+import com.itextpdf.text.Font
+import com.itextpdf.text.pdf.PdfPTable
+import com.itextpdf.text.pdf.PdfPCell
+import com.itextpdf.text.pdf.ColumnText
+import com.itextpdf.text.Element
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,10 +55,19 @@ fun ReportsScreen(viewModel: SublimationViewModel) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    val csvLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+    var showDatePicker by remember { mutableStateOf(false) }
+    var startDate by remember { mutableStateOf(0L) }
+    var endDate by remember { mutableStateOf(System.currentTimeMillis()) }
+
+    val datePickerState = rememberDateRangePickerState(
+        initialSelectedStartDateMillis = java.time.Instant.now().minus(java.time.Duration.ofDays(30)).toEpochMilli(),
+        initialSelectedEndDateMillis = System.currentTimeMillis()
+    )
+
+    val xlsxLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) { uri ->
         if (uri != null) {
             coroutineScope.launch {
-                exportOrdersToCsv(context, uri, orders)
+                exportOrdersToXlsx(context, uri, orders)
             }
         }
     }
@@ -67,11 +83,11 @@ fun ReportsScreen(viewModel: SublimationViewModel) {
     Scaffold(
         floatingActionButton = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                FloatingActionButton(onClick = { csvLauncher.launch("orders_export.csv") }) {
-                    Text("CSV", modifier = Modifier.padding(16.dp))
+                FloatingActionButton(onClick = { xlsxLauncher.launch("orders_export.xlsx") }) {
+                    Text("Excel", modifier = Modifier.padding(16.dp))
                 }
                 FloatingActionButton(onClick = { pdfLauncher.launch("reports_summary.pdf") }) {
-                    Text("PDF (لاتین)", modifier = Modifier.padding(16.dp))
+                    Text("PDF (فارسی)", modifier = Modifier.padding(16.dp))
                 }
             }
         }
@@ -88,6 +104,18 @@ fun ReportsScreen(viewModel: SublimationViewModel) {
                 text = "گزارشات کامل",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
+            )
+            
+            Button(onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Default.DateRange, contentDescription = "تغییر تاریخ")
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("انتخاب بازه تاریخی گزارش")
+            }
+            
+            val df = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
+            Text(
+                text = "بازه انتخابی: ${df.format(Date(datePickerState.selectedStartDateMillis ?: 0L))} تا ${df.format(Date(datePickerState.selectedEndDateMillis ?: System.currentTimeMillis()))}",
+                style = MaterialTheme.typography.bodyMedium
             )
 
             Card(modifier = Modifier.fillMaxWidth()) {
@@ -122,21 +150,58 @@ fun ReportsScreen(viewModel: SublimationViewModel) {
             }
         }
     }
+    
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDatePicker = false
+                    val start = datePickerState.selectedStartDateMillis ?: 0L
+                    val end = datePickerState.selectedEndDateMillis ?: System.currentTimeMillis()
+                    viewModel.setDateRange(start, end)
+                }) {
+                    Text("تایید")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("انصراف")
+                }
+            }
+        ) {
+            DateRangePicker(
+                state = datePickerState,
+                title = { Text("بازه گزارشات را انتخاب کنید", modifier = Modifier.padding(16.dp)) }
+            )
+        }
+    }
 }
 
-private suspend fun exportOrdersToCsv(context: Context, uri: Uri, orders: List<Order>) {
+private suspend fun exportOrdersToXlsx(context: Context, uri: Uri, orders: List<Order>) {
     withContext(Dispatchers.IO) {
         try {
             context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                OutputStreamWriter(outputStream, "UTF-8").use { writer ->
-                    // Excel UTF-8 BOM
-                    writer.write("\uFEFF")
-                    writer.write("Order ID,Customer ID,Total Amount,Paid Amount,Remaining Amount,Date\n")
-                    val df = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault())
-                    for (order in orders) {
-                        writer.write("${order.id},${order.customerId},${order.totalAmount},${order.paidAmount},${order.remainingAmount},${df.format(Date(order.date))}\n")
-                    }
+                val wb = Workbook(outputStream, "SublimationApp", "1.0")
+                val ws = wb.newWorksheet("سفارشات")
+                ws.value(0, 0, "شناسه سفارش")
+                ws.value(0, 1, "شناسه مشتری")
+                ws.value(0, 2, "مبلغ کل")
+                ws.value(0, 3, "مبلغ پرداختی")
+                ws.value(0, 4, "مانده بدهی")
+                ws.value(0, 5, "تاریخ")
+
+                val df = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault())
+                for ((index, order) in orders.withIndex()) {
+                    val row = index + 1
+                    ws.value(row, 0, order.id.toString())
+                    ws.value(row, 1, order.customerId.toString())
+                    ws.value(row, 2, order.totalAmount)
+                    ws.value(row, 3, order.paidAmount)
+                    ws.value(row, 4, order.remainingAmount)
+                    ws.value(row, 5, df.format(Date(order.date)))
                 }
+                wb.finish()
             }
             withContext(Dispatchers.Main) {
                 Toast.makeText(context, "فایل اکسل با موفقیت ذخیره شد", Toast.LENGTH_SHORT).show()
@@ -150,33 +215,76 @@ private suspend fun exportOrdersToCsv(context: Context, uri: Uri, orders: List<O
 private suspend fun exportSummaryToPdf(context: Context, uri: Uri, gross: Double, net: Double, exp: Double, todaySales: Double) {
     withContext(Dispatchers.IO) {
         try {
-            val document = PdfDocument()
-            val pageInfo = PdfDocument.PageInfo.Builder(300, 400, 1).create()
-            val page = document.startPage(pageInfo)
-            val canvas = page.canvas
-            val paint = Paint()
-            paint.color = Color.BLACK
-            paint.textSize = 14f
-            
-            canvas.drawText("Sublimation ERP Summary Report", 10f, 30f, paint)
-            paint.textSize = 12f
-            canvas.drawText("Today Sales: ${String.format("%,.0f", todaySales)} Tomans", 10f, 70f, paint)
-            canvas.drawText("Gross Profit: ${String.format("%,.0f", gross)} Tomans", 10f, 100f, paint)
-            canvas.drawText("Total Expenses: ${String.format("%,.0f", exp)} Tomans", 10f, 130f, paint)
-            canvas.drawText("Net Profit: ${String.format("%,.0f", net)} Tomans", 10f, 160f, paint)
-            
-            document.finishPage(page)
-            
-            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                document.writeTo(outputStream)
+            val file = File(context.cacheDir, "temp_font.ttf")
+            if (!file.exists()) {
+                var isSet = false
+                try {
+                   context.assets.open("fonts/vazirmatn.ttf").use { input ->
+                        FileOutputStream(file).use { output ->
+                            input.copyTo(output)
+                        }
+                   }
+                   isSet = true
+                } catch(e: Exception) {}
+                
+                // Fallback to system fonts if user didn't drop the font yet, although text might not render nicely
+                if (!isSet) {
+                   file.createNewFile() // Creates empty file to fail gracefully
+                }
             }
-            document.close()
+
+            val document = Document()
+            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                PdfWriter.getInstance(document, outputStream)
+                document.open()
+                
+                var baseFont: BaseFont
+                try {
+                    baseFont = BaseFont.createFont(file.absolutePath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED)
+                } catch(e: Exception) {
+                    baseFont = BaseFont.createFont()
+                }
+                val font = Font(baseFont, 14f, Font.NORMAL)
+                val fontTitle = Font(baseFont, 18f, Font.BOLD)
+
+                val table = PdfPTable(1)
+                table.runDirection = PdfWriter.RUN_DIRECTION_RTL
+                table.widthPercentage = 100f
+                
+                var cell = PdfPCell(Paragraph("گزارش خلاصه وضعیت سیستم سابلیمیشن", fontTitle))
+                cell.border = com.itextpdf.text.Rectangle.NO_BORDER
+                cell.horizontalAlignment = Element.ALIGN_CENTER
+                table.addCell(cell)
+                
+                cell = PdfPCell(Paragraph("فروش امروز: ${String.format("%,.0f", todaySales)} تومان", font))
+                cell.border = com.itextpdf.text.Rectangle.NO_BORDER
+                table.addCell(cell)
+                
+                cell = PdfPCell(Paragraph("کل سود ناخالص: ${String.format("%,.0f", gross)} تومان", font))
+                cell.border = com.itextpdf.text.Rectangle.NO_BORDER
+                table.addCell(cell)
+                
+                cell = PdfPCell(Paragraph("کل هزینه‌ها: ${String.format("%,.0f", exp)} تومان", font))
+                cell.border = com.itextpdf.text.Rectangle.NO_BORDER
+                table.addCell(cell)
+                
+                cell = PdfPCell(Paragraph("سود خالص: ${String.format("%,.0f", net)} تومان", font))
+                cell.border = com.itextpdf.text.Rectangle.NO_BORDER
+                table.addCell(cell)
+
+                document.add(table)
+                document.close()
+            }
             
             withContext(Dispatchers.Main) {
                 Toast.makeText(context, "فایل PDF با موفقیت ذخیره شد", Toast.LENGTH_SHORT).show()
             }
         } catch(e: Exception) {
             e.printStackTrace()
+            withContext(Dispatchers.Main) {
+                 Toast.makeText(context, "خطا در خروجی PDF. آیا فونت در فولدر assets قرار دارد؟", Toast.LENGTH_LONG).show()
+            }
         }
     }
 }
+

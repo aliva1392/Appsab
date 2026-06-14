@@ -30,6 +30,8 @@ class SublimationRepository(
     val totalCustomerDebt: Flow<Double?> = customerDao.getTotalDebt()
     
     val allExpenses: Flow<List<Expense>> = expenseDao.getAllExpenses()
+    fun getExpensesBetween(startDate: Long, endDate: Long): Flow<List<Expense>> = expenseDao.getExpensesBetween(startDate, endDate)
+    fun getOrdersBetween(startDate: Long, endDate: Long): Flow<List<Order>> = orderDao.getOrdersBetween(startDate, endDate)
     val allPayments: Flow<List<Payment>> = paymentDao.getAllPayments()
     val allCheques: Flow<List<Cheque>> = chequeDao.getAllCheques()
     

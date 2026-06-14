@@ -17,6 +17,9 @@ interface OrderDao {
     @Query("SELECT * FROM orders WHERE customerId = :customerId ORDER BY date DESC")
     fun getOrdersForCustomer(customerId: Long): Flow<List<Order>>
 
+    @Query("SELECT * FROM orders WHERE date >= :startDate AND date <= :endDate ORDER BY date DESC")
+    fun getOrdersBetween(startDate: Long, endDate: Long): Flow<List<Order>>
+
     @Query("SELECT * FROM orders WHERE id = :id")
     suspend fun getOrderById(id: Long): Order?
 

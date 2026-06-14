@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
 
@@ -26,11 +28,18 @@ class SublimationViewModel(private val repository: SublimationRepository) : View
         initialValue = emptyList()
     )
 
-    val orders: StateFlow<List<Order>> = repository.allOrders.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    private val _reportStartDate = MutableStateFlow<Long>(0L)
+    private val _reportEndDate = MutableStateFlow<Long>(System.currentTimeMillis())
+    
+    fun setDateRange(start: Long, end: Long) {
+        _reportStartDate.value = start
+        _reportEndDate.value = end
+    }
+
+    val orders: StateFlow<List<Order>> = combine(_reportStartDate, _reportEndDate) { start, end -> Pair(start, end) }
+        .flatMapLatest { (start, end) ->
+            if (start == 0L) repository.allOrders else repository.getOrdersBetween(start, end)
+        }.stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptyList())
 
     val fabrics: StateFlow<List<Fabric>> = repository.allFabrics.stateIn(
         scope = viewModelScope,
@@ -38,11 +47,10 @@ class SublimationViewModel(private val repository: SublimationRepository) : View
         initialValue = emptyList()
     )
     
-    val expenses: StateFlow<List<Expense>> = repository.allExpenses.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    val expenses: StateFlow<List<Expense>> = combine(_reportStartDate, _reportEndDate) { start, end -> Pair(start, end) }
+        .flatMapLatest { (start, end) ->
+            if (start == 0L) repository.allExpenses else repository.getExpensesBetween(start, end)
+        }.stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptyList())
     
     val payments: StateFlow<List<Payment>> = repository.allPayments.stateIn(
         scope = viewModelScope,

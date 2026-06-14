@@ -68,7 +68,18 @@ fun AddOrderScreen(viewModel: SublimationViewModel, orderId: Long?, onNavigateBa
 
     // Auto calculate
     LaunchedEffect(width, length, quantity, unitPrice) {
-        if (initialized && editingOrder != null) return@LaunchedEffect
+        if (!initialized && editingOrder != null) return@LaunchedEffect
+        
+        // If editing and these fields match the original order, don't auto-calculate (preserves custom total amounts).
+        // Once the user changes any of them, auto-calculate resumes.
+        if (editingOrder != null && 
+            width == (editingOrder.width?.toString() ?: "") &&
+            length == (editingOrder.length?.toString() ?: "") &&
+            quantity == editingOrder.quantity.toString() &&
+            unitPrice == editingOrder.unitPrice.toLong().toString()) {
+            return@LaunchedEffect
+        }
+        
         val w = width.toDoubleOrNull() ?: 1.0
         val l = length.toDoubleOrNull() ?: 1.0
         val q = quantity.toIntOrNull() ?: 1

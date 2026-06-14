@@ -26,6 +26,6 @@ interface FabricDao {
     @Delete
     suspend fun deleteFabric(fabric: Fabric)
     
-    @Query("SELECT COUNT(*) FROM fabrics WHERE stock < 50") // 50m threshold
-    fun getLowStockFabricsCount(): Flow<Int>
+    @Query("SELECT COUNT(*) FROM fabrics WHERE stock < :threshold")
+    fun getLowStockFabricsCount(threshold: Double): Flow<Int>
 }

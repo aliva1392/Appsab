@@ -38,7 +38,7 @@ class SublimationRepository(
     fun getTodayOrdersCount(startOfDay: Long) = orderDao.getTodayOrdersCount(startOfDay)
     fun getTodaySalesAmount(startOfDay: Long) = orderDao.getTodaySalesAmount(startOfDay)
     val readyOrdersCount: Flow<Int> = orderDao.getReadyOrdersCount()
-    val lowStockFabricsCount: Flow<Int> = fabricDao.getLowStockFabricsCount()
+    fun getLowStockFabricsCount(threshold: Double): Flow<Int> = fabricDao.getLowStockFabricsCount(threshold)
 
     suspend fun insertCustomer(customer: Customer) = customerDao.insertCustomer(customer)
     suspend fun updateCustomer(customer: Customer) = customerDao.updateCustomer(customer)

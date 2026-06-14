@@ -1,32 +1,9 @@
-import java.net.URL
-
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.google.devtools.ksp)
   alias(libs.plugins.roborazzi)
   alias(libs.plugins.secrets)
-}
-
-tasks.register("downloadFont") {
-    doLast {
-        val destDir = file("src/main/assets/fonts")
-        destDir.mkdirs()
-        val destFile = file("src/main/assets/fonts/vazirmatn.ttf")
-        if (!destFile.exists()) {
-            URL("https://github.com/rastikerdar/vazirmatn/raw/master/fonts/ttf/Vazirmatn-Regular.ttf").openStream().use { input ->
-                destFile.outputStream().use { output ->
-                    input.copyTo(output)
-                }
-            }
-        }
-    }
-}
-
-tasks.whenTaskAdded {
-    if (name == "preBuild") {
-        dependsOn("downloadFont")
-    }
 }
 
 android {

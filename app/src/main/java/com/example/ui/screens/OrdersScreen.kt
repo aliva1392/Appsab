@@ -77,7 +77,7 @@ fun OrderItem(order: Order, customerName: String, onClick: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "مشتری: $customerName", style = MaterialTheme.typography.bodyMedium)
             
-            val jalaliStr = "${getShamsiDate(order.date)} ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(order.date))}"
+            val jalaliStr = "${getShamsiDate(order.date)} ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(order.date))}" // uses getShamsiDate from JalaliConverter.kt
             Text(text = "تاریخ: $jalaliStr", style = MaterialTheme.typography.bodySmall)
             
             Text(text = "مبلغ کل: ${String.format("%,.0f", order.totalAmount)} تومان", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)

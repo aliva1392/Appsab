@@ -72,7 +72,7 @@ class SublimationViewModel(private val repository: SublimationRepository) : View
         viewModelScope, SharingStarted.WhileSubscribed(5000), 0
     )
     
-    val lowStockFabricsCount = repository.lowStockFabricsCount.stateIn(
+    val lowStockFabricsCount = repository.getLowStockFabricsCount(com.aistudio.sublimationerp.data.AppConstants.LOW_STOCK_THRESHOLD_METERS).stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5000), 0
     )
 

@@ -23,7 +23,7 @@ import org.robolectric.annotation.Config
 import org.junit.Assert.assertEquals
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [29])
 class SublimationRepositoryTest {
     private lateinit var db: AppDatabase
     private lateinit var repository: SublimationRepository
@@ -239,7 +239,7 @@ class SublimationRepositoryTest {
     }
 
     @Test
-    fun backupAndRestoreDatabase() = runBlocking {
+    fun backupAndRestoreDatabase() = runBlocking<Unit> {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val dbFile = context.getDatabasePath("test_db")
         

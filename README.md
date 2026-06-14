@@ -18,7 +18,12 @@ SubliMaster یک سیستم ERP و حسابداری جامع جهت مدیریت
 ```bash
 # بیلد نسخه دیباگ
 ./gradlew clean assembleDebug
+
+# بیلد نسخه ریلیز
+./gradlew clean assembleRelease
 ```
+
+> **نکته برای خروجی Release:** برای خروجی Release واقعی با کلید امضا (Keystore)، فایل کلید خود را با نام `my-upload-key.jks` در مسیر ریشه پروژه قرار دهید و متغیرهای محیطی `STORE_PASSWORD` و `KEY_PASSWORD` را تنظیم کنید. در غیر این صورت، نسخه Release با کلید Debug امضا خواهد شد.
 
 مسیر فایل APK پس از Build: 
 `app/build/outputs/apk/debug/app-debug.apk`

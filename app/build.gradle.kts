@@ -4,7 +4,6 @@ plugins {
   alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.google.devtools.ksp)
   alias(libs.plugins.roborazzi)
-  // alias(libs.plugins.secrets)
 }
 
 android {
@@ -56,24 +55,32 @@ android {
     buildConfig = true
   }
   testOptions { unitTests { isIncludeAndroidResources = true } }
+
+  packaging {
+    resources {
+      excludes += setOf(
+        "META-INF/BCKEY.DSA",
+        "META-INF/BCKEY.SF",
+        "META-INF/NOTICE",
+        "META-INF/NOTICE.txt",
+        "META-INF/LICENSE",
+        "META-INF/LICENSE.txt",
+        "META-INF/ASL2.0",
+        "META-INF/*.kotlin_module",
+        "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+      )
+    }
+  }
 }
 
 kotlin {
   jvmToolchain(11)
 }
 
-// Configure the Secrets Gradle Plugin to use .env and .env.example files
-// to match the convention used in Web projects.
-// secrets {
-//   propertiesFileName = ".env"
-//   defaultPropertiesFileName = ".env.example"
-// }
-
 // Some unused dependencies are commented out below instead of being removed.
 // This makes it easy to add them back in the future if needed.
 dependencies {
   implementation(platform(libs.androidx.compose.bom))
-  // implementation(platform(libs.firebase.bom))
   // implementation(libs.accompanist.permissions)
   implementation(libs.androidx.activity.compose)
   // implementation(libs.androidx.camera.camera2)
@@ -97,15 +104,9 @@ dependencies {
   implementation("org.apache.poi:poi-ooxml:5.2.5")
   implementation("com.itextpdf:itext7-core:7.2.5")
   // implementation(libs.coil.compose)
-  // implementation(libs.converter.moshi)
-  // implementation(libs.firebase.ai)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
-  // implementation(libs.logging.interceptor)
-  // implementation(libs.moshi.kotlin)
-  // implementation(libs.okhttp)
   // implementation(libs.play.services.location)
-  // implementation(libs.retrofit)
   testImplementation(libs.androidx.compose.ui.test.junit4)
   testImplementation(libs.androidx.core)
   testImplementation(libs.androidx.junit)
@@ -123,5 +124,4 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.test.manifest)
   debugImplementation(libs.androidx.compose.ui.tooling)
   "ksp"(libs.androidx.room.compiler)
-  // "ksp"(libs.moshi.kotlin.codegen)
 }

@@ -72,7 +72,7 @@ class SublimationViewModel(private val repository: SublimationRepository) : View
         viewModelScope, SharingStarted.WhileSubscribed(5000), 0
     )
     
-    val lowStockFabricsCount = repository.getLowStockFabricsCount(com.aistudio.sublimationerp.data.AppConstants.LOW_STOCK_THRESHOLD_METERS).stateIn(
+    val lowStockFabricsCount = repository.getLowStockFabricsCount(5.0).stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5000), 0
     )
 
@@ -133,7 +133,7 @@ class SublimationViewModel(private val repository: SublimationRepository) : View
 
     fun addCustomer(name: String, phone: String, address: String) {
         viewModelScope.launch {
-            repository.insertCustomer(Customer(name = name, phone = phone, address = address))
+            repository.insertCustomer(Customer(name = name, phone = phone, address = address, balance = 0.0))
         }
     }
 

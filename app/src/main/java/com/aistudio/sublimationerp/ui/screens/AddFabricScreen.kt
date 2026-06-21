@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -19,8 +20,9 @@ fun AddFabricScreen(viewModel: SublimationViewModel, fabricId: Long? = null, onN
     var purchasePrice by remember { mutableStateOf("") }
     var stock by remember { mutableStateOf("") }
 
-    val fabric = fabricId?.let { id -> 
-        viewModel.fabrics.value.find { it.id == id }
+    val fabrics by viewModel.fabrics.collectAsStateWithLifecycle()
+    val fabric = remember(fabricId, fabrics) {
+        fabricId?.let { id -> fabrics.find { it.id == id } }
     }
     
     LaunchedEffect(fabric) {

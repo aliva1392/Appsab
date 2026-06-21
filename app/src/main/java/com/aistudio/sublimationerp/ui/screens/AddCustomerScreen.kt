@@ -6,6 +6,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.aistudio.sublimationerp.ui.viewmodels.SublimationViewModel
@@ -17,8 +18,9 @@ fun AddCustomerScreen(viewModel: SublimationViewModel, customerId: Long? = null,
     var phone by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     
-    val customer = customerId?.let { id -> 
-        viewModel.customers.value.find { it.id == id }
+    val customers by viewModel.customers.collectAsStateWithLifecycle()
+    val customer = remember(customerId, customers) {
+        customerId?.let { id -> customers.find { it.id == id } }
     }
     
     LaunchedEffect(customer) {

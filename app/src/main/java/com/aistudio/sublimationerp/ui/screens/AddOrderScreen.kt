@@ -40,6 +40,9 @@ fun AddOrderScreen(viewModel: SublimationViewModel, orderId: Long?, onNavigateBa
     var totalAmount by remember { mutableStateOf("") }
     var paidAmount by remember { mutableStateOf("0") }
     var notes by remember { mutableStateOf("") }
+    
+    var selectedStatus by remember { mutableStateOf(OrderStatus.REGISTERED) }
+    var statusDropdownExpanded by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -62,6 +65,7 @@ fun AddOrderScreen(viewModel: SublimationViewModel, orderId: Long?, onNavigateBa
             totalAmount = editingOrder.totalAmount.toLong().toString()
             paidAmount = editingOrder.paidAmount.toLong().toString()
             notes = editingOrder.notes
+            selectedStatus = editingOrder.status
             initialized = true
         }
     }
@@ -183,6 +187,34 @@ fun AddOrderScreen(viewModel: SublimationViewModel, orderId: Long?, onNavigateBa
                                 typeDropdownExpanded = false
                             }
                         )
+                    }
+                }
+            }
+
+            if (orderId != null) {
+                ExposedDropdownMenuBox(
+                    expanded = statusDropdownExpanded,
+                    onExpandedChange = { statusDropdownExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedStatus.displayName,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("وضعیت سفارش") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusDropdownExpanded) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = statusDropdownExpanded,
+                        onDismissRequest = { statusDropdownExpanded = false }
+                    ) {
+                        OrderStatus.entries.forEach { s ->
+                            DropdownMenuItem(
+                                text = { Text(s.displayName) },
+                                onClick = { selectedStatus = s; statusDropdownExpanded = false }
+                            )
+                        }
                     }
                 }
             }
@@ -335,7 +367,7 @@ fun AddOrderScreen(viewModel: SublimationViewModel, orderId: Long?, onNavigateBa
                             totalAmount = finalTotal,
                             paidAmount = finalPaid,
                             remainingAmount = remaining,
-                            status = editingOrder?.status ?: OrderStatus.REGISTERED,
+                            status = selectedStatus,
                             notes = notes,
                             date = editingOrder?.date ?: System.currentTimeMillis()
                         )

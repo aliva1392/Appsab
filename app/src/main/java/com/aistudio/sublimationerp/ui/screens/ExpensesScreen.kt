@@ -33,11 +33,19 @@ fun ExpensesScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
-            Text(
-                text = "هزینه‌ها",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "هزینه‌ها",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                Button(onClick = { navController.navigate(com.aistudio.sublimationerp.ui.navigation.Route.FABRICS.name) }) {
+                    Text("مدیریت پارچه‌ها")
+                }
+            }
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(expenses) { expense ->
@@ -70,6 +78,8 @@ fun AddExpenseScreen(
 ) {
     var description by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
+    var selectedType by remember { mutableStateOf(com.aistudio.sublimationerp.data.db.entity.ExpenseType.DIRECT) }
+    var typeDropdownExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -84,6 +94,34 @@ fun AddExpenseScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
+
+            ExposedDropdownMenuBox(
+                expanded = typeDropdownExpanded,
+                onExpandedChange = { typeDropdownExpanded = it }
+            ) {
+                OutlinedTextField(
+                    value = selectedType.displayName,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("نوع هزینه") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeDropdownExpanded) },
+                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                )
+                ExposedDropdownMenu(
+                    expanded = typeDropdownExpanded,
+                    onDismissRequest = { typeDropdownExpanded = false }
+                ) {
+                    com.aistudio.sublimationerp.data.db.entity.ExpenseType.entries.forEach { s ->
+                        DropdownMenuItem(
+                            text = { Text(s.displayName) },
+                            onClick = { selectedType = s; typeDropdownExpanded = false }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = description,
@@ -111,6 +149,7 @@ fun AddExpenseScreen(
                     viewModel.addExpense(com.aistudio.sublimationerp.data.db.entity.Expense(
                         description = description,
                         amount = amt,
+                        type = selectedType,
                         date = System.currentTimeMillis()
                     ))
                     navController.popBackStack()

@@ -9,7 +9,7 @@ import com.aistudio.sublimationerp.data.db.dao.*
 
 @Database(
     entities = [Customer::class, Fabric::class, Order::class, Expense::class, Payment::class, Cheque::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -30,7 +30,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "sublimation_database"
-                ).build()
+                )
+                .fallbackToDestructiveMigration()
+                .build()
                 INSTANCE = instance
                 instance
             }

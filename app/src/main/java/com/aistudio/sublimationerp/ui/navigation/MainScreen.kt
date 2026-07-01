@@ -2,11 +2,11 @@ package com.aistudio.sublimationerp.ui.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -32,8 +32,8 @@ sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: 
     object Orders : BottomNavItem(Route.ORDERS.name, Icons.Default.ShoppingCart, "سفارشات")
     object Customers : BottomNavItem(Route.CUSTOMERS.name, Icons.Default.People, "مشتریان")
     object Fabrics : BottomNavItem(Route.FABRICS.name, Icons.Default.Inventory, "پارچه‌ها")
+    object Expenses : BottomNavItem(Route.EXPENSES.name, Icons.Default.AccountBalanceWallet, "هزینه‌ها")
     object Reports : BottomNavItem(Route.REPORTS.name, Icons.Default.BarChart, "گزارشات")
-    object Settings : BottomNavItem(Route.SETTINGS.name, Icons.Default.Settings, "تنظیمات")
 }
 
 @Composable
@@ -43,9 +43,8 @@ fun MainScreen(repository: SublimationRepository, viewModel: SublimationViewMode
         BottomNavItem.Dashboard,
         BottomNavItem.Orders,
         BottomNavItem.Customers,
-        BottomNavItem.Fabrics,
-        BottomNavItem.Reports,
-        BottomNavItem.Settings
+        BottomNavItem.Expenses,
+        BottomNavItem.Reports
     )
 
     Scaffold(
@@ -153,9 +152,6 @@ fun MainScreen(repository: SublimationRepository, viewModel: SublimationViewMode
             }
             composable(Route.REPORTS.name) {
                 ReportsScreen(navController = navController, viewModel = viewModel)
-            }
-            composable(Route.SETTINGS.name) {
-                SettingsScreen(navController = navController)
             }
         }
     }

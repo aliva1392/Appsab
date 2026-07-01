@@ -14,8 +14,8 @@ android {
     applicationId = "com.aistudio.sublimationerp.abkrz"
     minSdk = 26
     targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
+    versionCode = 2
+    versionName = "1.1"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -102,7 +102,7 @@ dependencies {
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)
   implementation("org.apache.poi:poi-ooxml:5.2.5")
-  implementation("com.itextpdf:itext7-core:7.2.5")
+  // implementation("com.itextpdf:itext7-core:7.2.5")
   // implementation(libs.coil.compose)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)

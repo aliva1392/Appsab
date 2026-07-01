@@ -93,7 +93,10 @@ class SublimationViewModel(private val repository: SublimationRepository) : View
         viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0
     )
 
-    val totalExpenses = expenses.map { list -> list.sumOf { it.amount } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+    val directExpenses = expenses.map { list -> list.filter { it.type == com.aistudio.sublimationerp.data.db.entity.ExpenseType.DIRECT }.sumOf { it.amount } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+    val indirectExpenses = expenses.map { list -> list.filter { it.type == com.aistudio.sublimationerp.data.db.entity.ExpenseType.INDIRECT_CAPITAL }.sumOf { it.amount } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+    
+    val totalExpenses = directExpenses // Backward compatibility for existing views
 
     val grossProfit = combine(orders, fabrics) { orderList, fabricList ->
         var gross = 0.0
@@ -137,9 +140,29 @@ class SublimationViewModel(private val repository: SublimationRepository) : View
         }
     }
 
+    suspend fun getOrCreateDefaultCustomer(): Long {
+        val defaultName = "مشتری معمولی (پیش‌فرض)"
+        val existing = customers.value.find { it.name == defaultName }
+        if (existing != null) {
+            return existing.id
+        }
+        return repository.insertCustomer(Customer(name = defaultName, phone = "-", address = "-", balance = 0.0))
+    }
+
     fun addFabric(name: String, purchasePrice: Double, stock: Double) {
         viewModelScope.launch {
             repository.insertFabric(Fabric(name = name, purchasePrice = purchasePrice, stock = stock))
+            val totalCost = purchasePrice * stock
+            if (totalCost > 0) {
+                repository.insertExpense(
+                    Expense(
+                        description = "خرید پارچه: $name",
+                        amount = totalCost,
+                        type = com.aistudio.sublimationerp.data.db.entity.ExpenseType.DIRECT,
+                        date = System.currentTimeMillis()
+                    )
+                )
+            }
         }
     }
     

@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -14,13 +15,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.aistudio.sublimationerp.data.db.entity.Order
 import com.aistudio.sublimationerp.ui.viewmodels.SublimationViewModel
-import com.itextpdf.io.font.PdfEncodings
-import com.itextpdf.kernel.font.PdfFontFactory
-import com.itextpdf.kernel.pdf.PdfDocument
-import com.itextpdf.kernel.pdf.PdfWriter
-import com.itextpdf.layout.Document
-import com.itextpdf.layout.element.Paragraph
-import com.itextpdf.layout.properties.TextAlignment
+import android.graphics.pdf.PdfDocument
+import android.graphics.Paint
+import android.graphics.Typeface
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 
@@ -33,7 +32,18 @@ fun ReportsScreen(navController: NavController, viewModel: SublimationViewModel)
     val grossProfit by viewModel.grossProfit.collectAsStateWithLifecycle()
     val netProfit by viewModel.netProfit.collectAsStateWithLifecycle()
     val totalExpenses by viewModel.totalExpenses.collectAsStateWithLifecycle()
+    val indirectExpenses by viewModel.indirectExpenses.collectAsStateWithLifecycle()
     val orders by viewModel.orders.collectAsStateWithLifecycle() // or maybe filtered orders, but using all is fine for now
+    
+    var isRefreshing by remember { mutableStateOf(false) }
+    val pullToRefreshState = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
+
+    LaunchedEffect(isRefreshing) {
+        if (isRefreshing) {
+            kotlinx.coroutines.delay(1000)
+            isRefreshing = false
+        }
+    }
     
     // Add simple state for date range testing (e.g. 1 month ago to now)
     var startDate by remember { mutableStateOf(System.currentTimeMillis() - 30L * 24 * 3600 * 1000) }
@@ -62,64 +72,72 @@ fun ReportsScreen(navController: NavController, viewModel: SublimationViewModel)
         }
     }
     
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("گزارشات و سود و زیان", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(bottom = 16.dp))
+    androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = { isRefreshing = true },
+        state = pullToRefreshState,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Column(modifier = Modifier.fillMaxSize().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(16.dp)) {
+            Text("گزارشات و سود و زیان", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(bottom = 16.dp))
 
-        // simple offset buttons since compose DatePicker doesn't support Jalali natively
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Button(onClick = { 
-                startDate -= 7L*24*3600*1000 
-                startInput = getShamsiDate(startDate)
-            }) { Text("هفته قبل") }
-            Button(onClick = { 
-                startDate = System.currentTimeMillis() - 30L*24*3600*1000
-                endDate = System.currentTimeMillis() 
-                startInput = getShamsiDate(startDate)
-                endInput = getShamsiDate(endDate)
-            }) { Text("ماه اخیر") }
-            Button(onClick = { 
-                startDate += 7L*24*3600*1000
-                endDate += 7L*24*3600*1000 
-                startInput = getShamsiDate(startDate)
-                endInput = getShamsiDate(endDate)
-            }) { Text("هفته بعد") }
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                value = startInput,
-                onValueChange = { 
-                    startInput = it
-                    shamsiToTimestamp(it)?.let { ts -> startDate = ts }
-                },
-                label = { Text("از تاریخ (شمسی)") },
-                modifier = Modifier.weight(1f)
-            )
-            OutlinedTextField(
-                value = endInput,
-                onValueChange = { 
-                    endInput = it
-                    shamsiToTimestamp(it)?.let { ts -> endDate = ts }
-                },
-                label = { Text("تا تاریخ (شمسی)") },
-                modifier = Modifier.weight(1f)
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("هزینه‌ها: ${formatCurrency(totalExpenses)}")
-                Text("سود ناخالص: ${formatCurrency(grossProfit)}")
-                Text(
-                    "سود خالص: ${formatCurrency(netProfit)}", 
-                    style = MaterialTheme.typography.titleLarge,
-                    color = if (netProfit >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+            // simple offset buttons since compose DatePicker doesn't support Jalali natively
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Button(onClick = { 
+                    startDate -= 7L*24*3600*1000 
+                    startInput = getShamsiDate(startDate)
+                }) { Text("هفته قبل") }
+                Button(onClick = { 
+                    startDate = System.currentTimeMillis() - 30L*24*3600*1000
+                    endDate = System.currentTimeMillis() 
+                    startInput = getShamsiDate(startDate)
+                    endInput = getShamsiDate(endDate)
+                }) { Text("ماه اخیر") }
+                Button(onClick = { 
+                    startDate += 7L*24*3600*1000
+                    endDate += 7L*24*3600*1000 
+                    startInput = getShamsiDate(startDate)
+                    endInput = getShamsiDate(endDate)
+                }) { Text("هفته بعد") }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = startInput,
+                    onValueChange = { 
+                        startInput = it
+                        shamsiToTimestamp(it)?.let { ts -> startDate = ts }
+                    },
+                    label = { Text("از تاریخ (شمسی)") },
+                    modifier = Modifier.weight(1f)
+                )
+                OutlinedTextField(
+                    value = endInput,
+                    onValueChange = { 
+                        endInput = it
+                        shamsiToTimestamp(it)?.let { ts -> endDate = ts }
+                    },
+                    label = { Text("تا تاریخ (شمسی)") },
+                    modifier = Modifier.weight(1f)
                 )
             }
-        }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("هزینه‌های مستقیم: ${formatCurrency(totalExpenses)}")
+                    Text("هزینه‌های غیرمستقیم/سرمایه‌ای: ${formatCurrency(indirectExpenses)}")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("سود ناخالص: ${formatCurrency(grossProfit)}")
+                    Text(
+                        "سود خالص: ${formatCurrency(netProfit)}", 
+                        style = MaterialTheme.typography.titleLarge,
+                        color = if (netProfit >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                    )
+                }
+            }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -131,28 +149,48 @@ fun ReportsScreen(navController: NavController, viewModel: SublimationViewModel)
             Text("خروجی Excel سفارشات") 
         }
     }
+    }
 }
 
-suspend fun exportSummaryToPdf(context: Context, uri: Uri, gross: Double, net: Double, exp: Double) {
+suspend fun exportSummaryToPdf(context: Context, uri: Uri, gross: Double, net: Double, exp: Double) = withContext(Dispatchers.IO) {
     try {
         context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-            val pdfWriter = PdfWriter(outputStream)
-            val pdfDocument = PdfDocument(pdfWriter)
-            val document = Document(pdfDocument)
+            val document = PdfDocument()
+            val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
+            val page = document.startPage(pageInfo)
+            val canvas = page.canvas
+
+            val paint = Paint().apply {
+                color = android.graphics.Color.BLACK
+                textSize = 20f
+                textAlign = Paint.Align.RIGHT
+                try {
+                    typeface = Typeface.createFromAsset(context.assets, "fonts/vazirmatn.ttf")
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            var y = 100f
+            val x = 550f
+
+            paint.textSize = 28f
+            paint.textAlign = Paint.Align.CENTER
+            canvas.drawText("گزارش سود و زیان کارگاه", 595f / 2, y, paint)
+
+            y += 80f
+            paint.textSize = 20f
+            paint.textAlign = Paint.Align.RIGHT
+            canvas.drawText("سود ناخالص: ${formatCurrency(gross)}", x, y, paint)
             
-            val fontBytes = context.assets.open("fonts/vazirmatn.ttf").readBytes()
-            val font = PdfFontFactory.createFont(fontBytes, PdfEncodings.IDENTITY_H, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED)
+            y += 40f
+            canvas.drawText("هزینه‌ها: ${formatCurrency(exp)}", x, y, paint)
             
-            val title = Paragraph("گزارش سود و زیان کارگاه")
-                .setFont(font)
-                .setFontSize(20f)
-                .setTextAlignment(TextAlignment.CENTER)
-            document.add(title)
-            
-            document.add(Paragraph("سود ناخالص: ${formatCurrency(gross)}").setFont(font).setTextAlignment(TextAlignment.RIGHT))
-            document.add(Paragraph("هزینه‌ها: ${formatCurrency(exp)}").setFont(font).setTextAlignment(TextAlignment.RIGHT))
-            document.add(Paragraph("سود خالص: ${formatCurrency(net)}").setFont(font).setTextAlignment(TextAlignment.RIGHT))
-            
+            y += 40f
+            canvas.drawText("سود خالص: ${formatCurrency(net)}", x, y, paint)
+
+            document.finishPage(page)
+            document.writeTo(outputStream)
             document.close()
         }
     } catch (e: Exception) {
@@ -160,7 +198,7 @@ suspend fun exportSummaryToPdf(context: Context, uri: Uri, gross: Double, net: D
     }
 }
 
-suspend fun exportOrdersToXlsx(context: Context, uri: Uri, orders: List<Order>, viewModel: SublimationViewModel) {
+suspend fun exportOrdersToXlsx(context: Context, uri: Uri, orders: List<Order>, viewModel: SublimationViewModel) = withContext(Dispatchers.IO) {
     try {
         context.contentResolver.openOutputStream(uri)?.use { outputStream ->
             val workbook = XSSFWorkbook()

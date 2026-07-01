@@ -20,8 +20,10 @@ data class Fabric(
     val stock: Double
 )
 
-enum class OrderType(val displayName: String) { FLAG("Flag"), BANNER("Banner"), SHIRT("Shirt"), MUG("Mug"), OTHER("Other"), CUSTOM("Custom") }
-enum class OrderStatus(val displayName: String) { REGISTERED("Registered"), IN_PROGRESS("In Progress"), READY("Ready"), DELIVERED("Delivered"), CANCELLED("Cancelled") }
+enum class OrderType(val displayName: String) { FLAG("پرچم"), BANNER("بنر"), SHIRT("تی‌شرت"), MUG("لیوان"), OTHER("سایر"), CUSTOM("دلخواه") }
+enum class OrderStatus(val displayName: String) { REGISTERED("ثبت شده"), IN_PROGRESS("در حال انجام"), READY("آماده تحویل"), DELIVERED("تحویل داده شده"), CANCELLED("لغو شده") }
+
+enum class ExpenseType(val displayName: String) { DIRECT("هزینه مستقیم (کسر از سود)"), INDIRECT_CAPITAL("هزینه غیرمستقیم / سرمایه اولیه") }
 
 @Entity(tableName = "orders")
 data class Order(
@@ -46,6 +48,7 @@ data class Expense(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val description: String,
     val amount: Double,
+    val type: ExpenseType = ExpenseType.DIRECT,
     val date: Long
 )
 

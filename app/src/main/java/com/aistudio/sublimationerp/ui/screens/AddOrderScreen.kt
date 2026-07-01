@@ -139,9 +139,10 @@ fun AddOrderScreen(viewModel: SublimationViewModel, orderId: Long?, onNavigateBa
                 onExpandedChange = { customerDropdownExpanded = it }
             ) {
                 OutlinedTextField(
-                    value = selectedCustomer?.name ?: "انتخاب مشتری",
+                    value = selectedCustomer?.name ?: "مشتری معمولی (پیش‌فرض)",
                     onValueChange = {},
                     readOnly = true,
+                    label = { Text("مشتری") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = customerDropdownExpanded) },
                     modifier = Modifier.menuAnchor().fillMaxWidth(),
                     colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
@@ -150,6 +151,13 @@ fun AddOrderScreen(viewModel: SublimationViewModel, orderId: Long?, onNavigateBa
                     expanded = customerDropdownExpanded,
                     onDismissRequest = { customerDropdownExpanded = false }
                 ) {
+                    DropdownMenuItem(
+                        text = { Text("مشتری معمولی (پیش‌فرض)") },
+                        onClick = {
+                            selectedCustomer = null
+                            customerDropdownExpanded = false
+                        }
+                    )
                     customers.forEach { customer ->
                         DropdownMenuItem(
                             text = { Text(customer.name) },
@@ -309,10 +317,7 @@ fun AddOrderScreen(viewModel: SublimationViewModel, orderId: Long?, onNavigateBa
             Button(
                 onClick = {
                     coroutineScope.launch {
-                        if (selectedCustomer == null) {
-                            snackbarHostState.showSnackbar("لطفاً مشتری را انتخاب کنید")
-                            return@launch
-                        }
+                        val cId = selectedCustomer?.id ?: viewModel.getOrCreateDefaultCustomer()
                         
                         val q = quantity.toIntOrNull() ?: 0
                         if (q <= 0) {
@@ -357,7 +362,7 @@ fun AddOrderScreen(viewModel: SublimationViewModel, orderId: Long?, onNavigateBa
                         val remaining = finalTotal - finalPaid
                         
                         val newOrder = Order(
-                            customerId = selectedCustomer!!.id,
+                            customerId = cId,
                             type = selectedOrderType,
                             fabricId = selectedFabric?.id,
                             width = width.toDoubleOrNull(),
